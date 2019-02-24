@@ -1,15 +1,14 @@
-requires 'perl', '5.008001';
-
-requires 'Function::Parameters';
+requires 'perl', '5.014004';
+requires 'Function::Parameters', '2.000003';
 requires 'Function::Return';
-
-requires 'Carp';
-requires 'Keyword::Simple';
 requires 'PPR';
-
+requires 'Keyword::Simple';
+requires 'Carp';
 requires 'Class::Load';
+requires 'Type::Tiny';
 
 on 'test' => sub {
     requires 'Test::More', '0.98';
+
 };
 

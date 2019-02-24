@@ -7,9 +7,12 @@ our $VERSION = "0.01";
 
 use Carp qw(croak confess);
 use Class::Load qw(load_class try_load_class);
+use Scalar::Util qw(blessed);
+
 use Function::Interface;
 
 my @CHECK;
+my %CHECKED;
 sub import {
     my $class = shift;
     my @interface_packages = @_;
@@ -61,6 +64,10 @@ sub CHECK {
             check_return($func_info, $rinfo)
                 or $croak->("function `$fname` is invalid return. Interface: $def");
         }
+
+        # for Types::Interface#ImplOf
+        # see also `impl_of`
+        $CHECKED{$pkg}{$ifpkg} = !!1;
     }
 }
 
@@ -106,6 +113,12 @@ sub check_return {
         return unless $ifr->type eq $type;
     }
     return !!1;
+}
+
+sub impl_of {
+    my ($package, $interface_package) = @_;
+    $package = ref $package ? blessed($package) : $package;
+    $CHECKED{$package}{$interface_package}
 }
 
 1;

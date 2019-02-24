@@ -5,7 +5,7 @@ use warnings;
 
 our $VERSION = "0.01";
 
-use Carp qw(confess);
+use Carp qw(croak confess);
 use Keyword::Simple;
 use PPR;
 
@@ -120,7 +120,7 @@ sub _assert_valid_interface {
             ;
         )
         $PPR::GRAMMAR
-    }sx or confess "invalid interface: $src";
+    }sx or croak "Invalid interface";
 
     my %match;
     $match{statement} = $+{statement};

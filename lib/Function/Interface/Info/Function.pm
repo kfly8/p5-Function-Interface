@@ -21,16 +21,16 @@ sub definition() {
     sprintf('%s %s(%s) :Return(%s)',
         $self->keyword,
         $self->subname,
-        (join ',', map {
+        (join ', ', map {
             sprintf('%s %s%s%s',
-                $_->type->display_name,
+                $_->type_display_name,
                 $_->named ? ':' : '',
                 $_->name,
                 $_->optional ? '=' : ''
             )
         } @{$self->params}),
-        (join ',', map {
-            $_->type->display_name,
+        (join ', ', map {
+            $_->type_display_name,
         } @{$self->return}),
     );
 }

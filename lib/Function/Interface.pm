@@ -12,7 +12,7 @@ use PPR;
 use Function::Interface::Info;
 use Function::Interface::Info::Function;
 use Function::Interface::Info::Function::Param;
-use Function::Interface::Info::Function::Return;
+use Function::Interface::Info::Function::ReturnParam;
 
 sub import {
     my $class = shift;
@@ -85,7 +85,7 @@ sub info {
                 subname => $_->{subname},
                 keyword => $_->{keyword},
                 params  => [ map { _make_function_param($_) } @{$_->{params}} ],
-                return  => [ map { _make_function_return($_) } @{$_->{return}} ],
+                return  => [ map { _make_function_return_param($_) } @{$_->{return}} ],
             )
         } @{$info}],
     );
@@ -101,9 +101,9 @@ sub _make_function_param {
     )
 }
 
-sub _make_function_return {
+sub _make_function_return_param {
     my $type = shift;
-    Function::Interface::Info::Function::Return->new(
+    Function::Interface::Info::Function::ReturnParam->new(
         type => $type,
     )
 }

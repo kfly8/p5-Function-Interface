@@ -1,4 +1,4 @@
-package Function::Interface::Info::Function::Return;
+package Function::Interface::Info::Function::ReturnParam;
 
 use v5.14.0;
 use warnings;
@@ -11,5 +11,6 @@ sub new {
 }
 
 sub type() { $_[0]->{type} }
+sub type_display_name() { $_[0]->type->display_name }
 
 1;

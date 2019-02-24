@@ -15,4 +15,6 @@ sub name() { $_[0]->{name} }
 sub optional() { !!$_[0]->{optional} }
 sub named() { !!$_[0]->{named} }
 
+sub type_display_name() { $_[0]->type->display_name }
+
 1;

@@ -11,16 +11,16 @@ sub required()   { 0 }
 sub optional()   { 1 }
 
 my @data = (
-    'fun foo() :Return()'                 => ['fun', 'foo', [], []],
-    'fun bar() :Return()'                 => ['fun', 'bar', [], []],
-    'method foo() :Return()'              => ['method', 'foo', [], []],
-    'fun foo(Str $msg) :Return()'         => ['fun', 'foo', [ ['Str', '$msg', positional, required] ], []],
-    'fun foo(Str $msg=) :Return()'        => ['fun', 'foo', [ ['Str', '$msg', positional, optional] ], []],
-    'fun foo(Str :$msg) :Return()'        => ['fun', 'foo', [ ['Str', '$msg', named, required] ], []],
-    'fun foo(Str :$msg=) :Return()'       => ['fun', 'foo', [ ['Str', '$msg', named, optional] ], []],
-    'fun foo(Str $msg, Int $i) :Return()' => ['fun', 'foo', [ ['Str', '$msg', positional, required], ['Int', '$i', positional, required] ], []],
-    'fun foo() :Return(Str)'              => ['fun', 'foo', [], ['Str']],
-    'fun foo() :Return(Str, Int)'         => ['fun', 'foo', [], ['Str', 'Int']],
+    'fun foo() :Return();'                 => ['fun', 'foo', [], []],
+    'fun bar() :Return();'                 => ['fun', 'bar', [], []],
+    'method foo() :Return();'              => ['method', 'foo', [], []],
+    'fun foo(Str $msg) :Return();'         => ['fun', 'foo', [ ['Str', '$msg', positional, required] ], []],
+    'fun foo(Str $msg=) :Return();'        => ['fun', 'foo', [ ['Str', '$msg', positional, optional] ], []],
+    'fun foo(Str :$msg) :Return();'        => ['fun', 'foo', [ ['Str', '$msg', named, required] ], []],
+    'fun foo(Str :$msg=) :Return();'       => ['fun', 'foo', [ ['Str', '$msg', named, optional] ], []],
+    'fun foo(Str $msg, Int $i) :Return();' => ['fun', 'foo', [ ['Str', '$msg', positional, required], ['Int', '$i', positional, required] ], []],
+    'fun foo() :Return(Str);'              => ['fun', 'foo', [], ['Str']],
+    'fun foo() :Return(Str, Int);'         => ['fun', 'foo', [], ['Str', 'Int']],
 );
 
 my $DEPARSE = B::Deparse->new();

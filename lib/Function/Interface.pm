@@ -115,8 +115,8 @@ sub _assert_valid_interface {
         \A
         (?<statement>
             (?&PerlOWS) (?<subname>(?&PerlIdentifier))
-            (?&PerlOWS) \((?<params>.+?)\)
-            (?&PerlOWS) :Return\((?<return>.+?)\)
+            (?&PerlOWS) \((?<params>.+?)?\)
+            (?&PerlOWS) :Return\((?<return>.+?)?\)
         )
         $PPR::GRAMMAR
     }sx or confess "invalid interface: $src";
@@ -124,8 +124,8 @@ sub _assert_valid_interface {
     my %match;
     $match{statement} = $+{statement};
     $match{subname} = $+{subname};
-    $match{params}  = _assert_valid_interface_params($+{params});
-    $match{return}  = _assert_valid_interface_return($+{return});
+    $match{params}  = $+{params} ? _assert_valid_interface_params($+{params}) : [];
+    $match{return}  = $+{return} ? _assert_valid_interface_return($+{return}) : [];
 
     return \%match;
 }

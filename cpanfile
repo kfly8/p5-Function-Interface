@@ -8,7 +8,5 @@ requires 'Class::Load';
 requires 'Type::Tiny';
 
 on 'test' => sub {
-    requires 'Test::More', '0.98';
-
+    requires 'Test2::V0';
 };
-

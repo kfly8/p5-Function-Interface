@@ -20,8 +20,8 @@ sub import {
 
     my $pkg = $args{pkg} ? $args{pkg} : caller;
 
-    Keyword::Simple::define 'fun' => define_interface($pkg, 'fun');
-    Keyword::Simple::define 'method' => define_interface($pkg, 'method');
+    Keyword::Simple::define 'fun' => _define_interface($pkg, 'fun');
+    Keyword::Simple::define 'method' => _define_interface($pkg, 'method');
 }
 
 sub unimport {
@@ -29,7 +29,7 @@ sub unimport {
     Keyword::Simple::undefine 'method';
 }
 
-sub define_interface {
+sub _define_interface {
     my ($pkg, $keyword) = @_;
 
     return sub {
@@ -54,7 +54,7 @@ Function::Interface::_register_info({
         my $named    = $_->{named} ? 1 : 0;
         my $optional = $_->{optional} ? 1 : 0;
 
-        qq!{ type => $_->{type}, named => $named, name => '$_->{name}', optional => $optional }!
+        qq!{ type => $_->{type}, name => '$_->{name}', named => $named, optional => $optional }!
     } @{$match->{params}} ]} ],
     return  => [ @{[ join ',', @{$match->{return}}] } ],
 });

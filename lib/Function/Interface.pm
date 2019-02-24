@@ -5,7 +5,7 @@ use warnings;
 
 our $VERSION = "0.01";
 
-use Carp qw(confess croak);
+use Carp qw(confess);
 use Keyword::Simple;
 use PPR;
 
@@ -115,8 +115,9 @@ sub _assert_valid_interface {
         \A
         (?<statement>
             (?&PerlOWS) (?<subname>(?&PerlIdentifier))
-            (?&PerlOWS) \((?<params>.+?)?\)
-            (?&PerlOWS) :Return\((?<return>.+?)?\)
+            (?&PerlOWS) \((?<params>.*?)\)
+            (?&PerlOWS) :Return\((?<return>.*?)\)
+            ;
         )
         $PPR::GRAMMAR
     }sx or confess "invalid interface: $src";

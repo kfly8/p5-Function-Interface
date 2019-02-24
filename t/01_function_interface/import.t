@@ -1,7 +1,8 @@
 use Test2::V0;
 
-use B::Deparse;
 use Function::Interface;
+
+use B::Deparse;
 use Types::Standard -types;
 
 sub positional() { 0 }

@@ -24,12 +24,14 @@ subtest 'bar' => sub {
     my $i = $info->functions->[1];
     is $i->subname, 'bar';
     is $i->keyword, 'fun';
-    is @{$i->params}, 1;
 
+    is @{$i->params}, 1;
+    isa_ok $i->params->[0], 'Function::Interface::Info::Function::Param';
     ok $i->params->[0]->type eq Str;
     is $i->params->[0]->name, '$msg';
 
     is @{$i->return}, 1;
+    isa_ok $i->return->[0], 'Function::Interface::Info::Function::ReturnParam';
     ok $i->return->[0]->type eq Int;
 };
 

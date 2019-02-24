@@ -128,20 +128,12 @@ __END__
 
 =head1 NAME
 
-Function::Interface - It's new $module
+Function::Interface::Impl - implements interface
 
 =head1 SYNOPSIS
 
-    package IFoo {
-        use Function::Interface;
-        use Types::Standard -types;
-
-        fun hello(Str $msg) :Return(Str);
-    }
-
     package Foo {
-        use Function::Interface
-            implements => qw(IFoo);
+        use Function::Interface::Impl qw(IFoo);
 
         use Function::Parameters;
         use Function::Return;
@@ -152,10 +144,18 @@ Function::Interface - It's new $module
         }
     }
 
+and declare interface class:
+
+    package IFoo {
+        use Function::Interface;
+        use Types::Standard -types;
+
+        fun hello(Str $msg) :Return(Str);
+    }
 
 =head1 DESCRIPTION
 
-Function::Interface is ...
+Function::Interface::Impl is ...
 
 =head1 LICENSE
 

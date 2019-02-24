@@ -189,7 +189,7 @@ __END__
 
 =head1 NAME
 
-Function::Interface - It's new $module
+Function::Interface - specify type constraints of subroutines
 
 =head1 SYNOPSIS
 
@@ -200,9 +200,10 @@ Function::Interface - It's new $module
         fun hello(Str $msg) :Return(Str);
     }
 
+and implements interface class:
+
     package Foo {
-        use Function::Interface
-            implements => qw(IFoo);
+        use Function::Interface::Impl qw(IFoo);
 
         use Function::Parameters;
         use Function::Return;

@@ -1,5 +1,5 @@
 {
-   "abstract" : "It's new $module",
+   "abstract" : "specify type constraints of subroutines",
    "author" : [
       "kfly8 <kfly@cpan.org>"
    ],

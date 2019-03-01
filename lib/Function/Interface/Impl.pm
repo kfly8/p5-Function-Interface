@@ -154,7 +154,8 @@ and declare interface class:
 
 =head1 DESCRIPTION
 
-Function::Interface::Impl is ...
+Function::Interface::Impl is for implementing interface.
+At compile time, it checks whether it is implemented according to the interface.
 
 =head1 LICENSE
 

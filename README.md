@@ -32,7 +32,7 @@ package Foo {
 
 # DESCRIPTION
 
-Function::Interface is ...
+Function::Interface provides Interface like Java and checks the arguments and return type of the function at compile time.
 
 # LICENSE
 

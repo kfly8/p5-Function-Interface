@@ -5,7 +5,6 @@ use warnings;
 
 our $VERSION = "0.01";
 
-use Carp qw(croak confess);
 use Class::Load qw(load_class try_load_class);
 use Scalar::Util qw(blessed);
 

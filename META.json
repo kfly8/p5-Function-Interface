@@ -70,8 +70,11 @@
          "web" : "https://github.com/kfly8/p5-Function-Interface"
       }
    },
-   "version" : "0.01",
+   "version" : "0.02",
    "x_authority" : "cpan:KFLY",
+   "x_contributors" : [
+      "Kenta Kobayashi <kentafly88@gmail.com>"
+   ],
    "x_serialization_backend" : "JSON::PP version 2.97001",
    "x_static_install" : 1
 }

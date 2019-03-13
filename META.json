@@ -45,8 +45,8 @@
             "Carp" : "0",
             "Class::Load" : "0",
             "Function::Parameters" : "2.000003",
-            "Function::Return" : "0",
-            "Keyword::Simple" : "0",
+            "Function::Return" : "0.05",
+            "Keyword::Simple" : "0.04",
             "PPR" : "0",
             "Type::Tiny" : "0",
             "perl" : "5.014004"

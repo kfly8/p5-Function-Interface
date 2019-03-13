@@ -8,8 +8,6 @@ our $VERSION = "0.02";
 use Class::Load qw(load_class try_load_class);
 use Scalar::Util qw(blessed);
 
-use Function::Interface;
-
 my @CHECK;
 my %CHECKED;
 sub import {
@@ -29,45 +27,49 @@ sub import {
 
 sub CHECK {
     for (@CHECK) {
-        my $pkg      = $_->{package};
-        my $ifpkg    = $_->{interface_package};
-        my $filename = $_->{filename};
-        my $line     = $_->{line};
+        my $pkg   = $_->{package};
+        my $ifpkg = $_->{interface_package};
+        my @fl    = ($_->{filename}, $_->{line});
 
-        my $croak = sub {
-            my $msg = shift;
-            die "[Interface] $msg at $filename line $line\n\tdied"
-        };
+        my ($ok, $e) = try_load_class($ifpkg);
+        error($e, @fl) if !$ok;
 
-        my (undef, $e) = try_load_class($ifpkg);
-        $croak->($e) if $e;
-
-        my $ifinfo = Function::Interface::info($ifpkg)
-                  or $croak->("cannot get interface info");
+        my $ifinfo = info_interface($ifpkg)
+                  or error("cannot get interface info", @fl);
 
         for my $func_info (@{$ifinfo->functions}) {
             my $fname = $func_info->subname;
             my $def   = $func_info->definition;
 
             my $code = $pkg->can($fname)
-                or $croak->("function `$fname` is required. Interface: $def");
+                or error("function `$fname` is required. Interface: $def", @fl);
 
             my $pinfo = info_params($code)
-                or $croak->("cannot get function `$fname` parameters info. Interface: $def");
+                or error("cannot get function `$fname` parameters info. Interface: $def", @fl);
             my $rinfo = info_return($code)
-                or $croak->("cannot get function `$fname` return info. Interface: $def");
+                or error("cannot get function `$fname` return info. Interface: $def", @fl);
 
             check_params($func_info, $pinfo)
-                or $croak->("function `$fname` is invalid parameters. Interface: $def");
-
+                or error("function `$fname` is invalid parameters. Interface: $def", @fl);
             check_return($func_info, $rinfo)
-                or $croak->("function `$fname` is invalid return. Interface: $def");
+                or error("function `$fname` is invalid return. Interface: $def", @fl);
         }
 
         # for Types::Interface#ImplOf
         # see also `impl_of`
         $CHECKED{$pkg}{$ifpkg} = !!1;
     }
+}
+
+sub error {
+    my ($msg, $filename, $line) = @_;
+    die sprintf "implements error: %s at %s line %s\n\tdied", $msg, $filename, $line;
+}
+
+sub info_interface {
+    my $interface_package = shift;
+    load_class('Function::Interface');
+    Function::Interface::info($interface_package)
 }
 
 sub info_params {

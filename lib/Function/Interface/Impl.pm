@@ -123,6 +123,8 @@ sub check_param {
 sub check_return {
     my ($rinfo, $ifunction_info) = @_;
 
+    return unless @{$rinfo->types} == @{$ifunction_info->return};
+
     for my $i (0 .. $#{$ifunction_info->return}) {
         my $ifr = $ifunction_info->return->[$i];
         my $type = $rinfo->types->[$i];

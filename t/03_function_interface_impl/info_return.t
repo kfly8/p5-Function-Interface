@@ -2,7 +2,7 @@ use Test2::V0;
 
 use Function::Interface::Impl;
 use Function::Return;
-sub hello() :Return() {}
+sub hello :Return() {}
 
 my $info = Function::Interface::Impl::info_return \&hello;
 

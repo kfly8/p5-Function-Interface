@@ -5,7 +5,7 @@ use warnings;
 
 our $VERSION = "0.03";
 
-use Carp qw(confess);
+use Carp qw(croak confess);
 use Keyword::Simple;
 use PPR;
 
@@ -121,7 +121,7 @@ sub _assert_valid_interface {
             ;
         )
         $PPR::GRAMMAR
-    }sx or confess "Invalid interface";
+    }sx or croak "invalid interface";
 
     my %match;
     $match{statement} = $+{statement};
@@ -132,36 +132,58 @@ sub _assert_valid_interface {
     return \%match;
 }
 
+$Function::Interface::GRAMMAR = qr{
+    (?(DEFINE)
+        (?<PerlType>
+            (?&PerlIdentifier)
+            (?: \s* \[
+                \s* (?&PerlTypeParameter) \s*
+                (?: , \s* (?&PerlTypeParameter) \s* )*+
+            \] )?
+        )
+
+        (?<PerlTypeParameter>
+            (?&PerlString)|(?&PerlVariable)|(?&PerlType)
+        )
+    )
+
+    $PPR::GRAMMAR
+}x;
+
 sub _assert_valid_interface_params {
     my $src = shift;
 
     my @list = grep { defined } $src =~ m{
-        ((?&type))         (?&PerlOWS)
-        ((?&named))        (?&PerlOWS)
-        ((?&PerlVariable)) (?&PerlOWS)
-        ((?&optional))
+        ((?&PerlType))     \s*
+        (:?) # named       \s*
+        ((?&PerlVariable)) \s*
+        (=?) # optional
 
-        (?(DEFINE)
-            (?<type> (?&PerlIdentifier) | (?&PerlCall) )
-            (?<named> :? )
-            (?<optional> =? )
-        )
-
-        $PPR::GRAMMAR
-    }sxg;
+        $Function::Interface::GRAMMAR
+    }xg;
 
     my @params;
-    while (my @items = splice @list, 0, 4) {
-        confess "invalid param: @items. It should be TYPE VAR."
-            unless (@items == 4);
-
+    while (my ($type, $named, $name, $optional) = splice @list, 0, 4) {
         push @params => {
-            type     => $items[0],
-            named    => !!$items[1],
-            name     => $items[2],
-            optional => !!$items[3],
+            type     => $type,
+            named    => !!$named,
+            name     => $name,
+            optional => !!$optional,
         }
     }
+
+    my $regex = join '\s*,\s*', map {
+        quotemeta sprintf('%s %s%s%s',
+            $_->{type},
+            $_->{named} ? ':' : '',
+            $_->{name},
+            $_->{optional} ? '=' : '',
+        )
+    } @params;
+
+    croak "invalid interface params: $src"
+        unless $src =~ m{ \A \s* $regex \s* \z }x;
+
     return \@params;
 }
 
@@ -169,17 +191,14 @@ sub _assert_valid_interface_return {
     my $src = shift;
 
     my @list = grep { defined } $src =~ m{
-        ((?&type))
+        ((?&PerlType))
+        $Function::Interface::GRAMMAR
+    }xg;
 
-        (?(DEFINE)
-            (?<type> (?&PerlIdentifier) | (?&PerlCall) )
-        )
-
-        $PPR::GRAMMAR
-    }sxg;
-
-    confess "invalid return type: $src. It should be TYPELIST."
-        if $src && !@list;
+    croak "invalid interface return: $src. It should be TYPELIST."
+        unless $src =~ m{
+            \A \s* @{[join '\s*,\s*', map { quotemeta $_ } @list]} \s* \z
+        }x;
 
     return \@list;
 }

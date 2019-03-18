@@ -5,7 +5,7 @@ use warnings;
 
 our $VERSION = "0.03";
 
-use Class::Load qw(load_class try_load_class);
+use Class::Load qw(load_class try_load_class is_class_loaded);
 use Scalar::Util qw(blessed);
 
 sub import {
@@ -44,28 +44,35 @@ sub assert_valid {
     my ($package, $interface_package, $filename, $line) = @_;
     my @fl = ($filename, $line);
 
-    my ($ok, $e) = try_load_class($interface_package);
-    error($e, @fl) if !$ok;
+    {
+        my $ok = is_class_loaded($package);
+        return error("implements package is not loaded yet. required to use $package", @fl) if !$ok;
+    }
+
+    {
+        my ($ok, $e) = try_load_class($interface_package);
+        return error("cannot load interface package: $e", @fl) if !$ok;
+    }
 
     my $iinfo = info_interface($interface_package)
-            or error("cannot get interface info", @fl);
+            or return error("cannot get interface info", @fl);
 
     for my $ifunction_info (@{$iinfo->functions}) {
         my $fname = $ifunction_info->subname;
         my $def   = $ifunction_info->definition;
 
         my $code = $package->can($fname)
-            or error("function `$fname` is required. Interface: $def", @fl);
+            or return error("function `$fname` is required. Interface: $def", @fl);
 
         my $pinfo = info_params($code)
-            or error("cannot get function `$fname` parameters info. Interface: $def", @fl);
+            or return error("cannot get function `$fname` parameters info. Interface: $def", @fl);
         my $rinfo = info_return($code)
-            or error("cannot get function `$fname` return info. Interface: $def", @fl);
+            or return error("cannot get function `$fname` return info. Interface: $def", @fl);
 
         check_params($pinfo, $ifunction_info)
-            or error("function `$fname` is invalid parameters. Interface: $def", @fl);
+            or return error("function `$fname` is invalid parameters. Interface: $def", @fl);
         check_return($rinfo, $ifunction_info)
-            or error("function `$fname` is invalid return. Interface: $def", @fl);
+            or return error("function `$fname` is invalid return. Interface: $def", @fl);
     }
 }
 

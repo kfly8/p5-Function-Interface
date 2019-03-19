@@ -170,9 +170,11 @@ __END__
 
 =head1 NAME
 
-Function::Interface::Impl - implements interface
+Function::Interface::Impl - implements interface package
 
 =head1 SYNOPSIS
+
+Implements the interface package C<IFoo>:
 
     package Foo {
         use Function::Interface::Impl qw(IFoo);
@@ -181,21 +183,54 @@ Function::Interface::Impl - implements interface
         fun hello(Str $msg) :Return(Str) {
             return "HELLO $msg";
         }
-    }
 
-and declare interface class:
-
-    package IFoo {
-        use Function::Interface;
-        use Types::Standard -types;
-
-        fun hello(Str $msg) :Return(Str);
+        fun add(Int $a, Int $b) :Return(Int) {
+            return $a + $b;
+        }
     }
 
 =head1 DESCRIPTION
 
-Function::Interface::Impl is for implementing interface.
-At compile time, it checks whether it is implemented according to the interface.
+Function::Interface::Impl is for implementing interface package.
+This module checks if the abstract functions are implemented at B<compile time> and imports Function::Parameters and Function::Return into the implementing package.
+
+=head1 METHODS
+
+=head2 assert_valid
+
+check if the interface package is implemented, otherwise die.
+
+=head2 info_interface($interface_package)
+
+get the object of Function::Interface::Info.
+
+=head2 info_params($code)
+
+get the object of Function::Parameters.
+
+=head2 info_return($code)
+
+get the object of Function::Return.
+
+=head2 check_params($params_info, $interface_function_info)
+
+check if the arguments are implemented according to the interface info.
+
+=head2 check_param($param, $interface_param)
+
+check if the argument are implemented according to the interface info.
+
+=head2 check_return($return_info, $interface_function_info)
+
+check if the return types are implemented according to the interface info.
+
+=head2 impl_of($package, $interface_package)
+
+check if specified package is an implementation of specified interface package.
+
+=head1 SEE ALSO
+
+L<Function::Parameters>, L<Function::Return>
 
 =head1 LICENSE
 

@@ -163,9 +163,6 @@ Function::Interface::Impl - implements interface
 
     package Foo {
         use Function::Interface::Impl qw(IFoo);
-
-        use Function::Parameters;
-        use Function::Return;
         use Types::Standard -types;
 
         fun hello(Str $msg) :Return(Str) {

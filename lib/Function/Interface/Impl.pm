@@ -97,6 +97,19 @@ sub info_params {
     Function::Parameters::info($code)
 }
 
+
+# XXX:
+# We want to call CHECK in the following order:
+# 1. Function::Return#CHECK (to get return info)
+# 2. Function::Interface::Impl#CHECK (to check implements)
+#
+# CHECK is LIFO.
+# So, it is necessary to load in the following order:
+# 1. Function::Interface::Impl
+# 2. Function::Return
+#
+# Because of this,
+# Function::Interface::Impl doesn't use Function::Return, but does load_class.
 sub info_return {
     my $code = shift;
     load_class('Function::Return');

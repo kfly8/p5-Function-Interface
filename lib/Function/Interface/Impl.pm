@@ -15,7 +15,7 @@ sub import {
     my ($pkg, $filename, $line) = caller;
 
     for (@interface_packages) {
-        register_check_list($pkg, $_, $filename, $line);
+        _register_check_list($pkg, $_, $filename, $line);
     }
 
     Function::Parameters->import::into($pkg);
@@ -33,7 +33,7 @@ CHECK {
     }
 }
 
-sub register_check_list {
+sub _register_check_list {
     my ($package, $interface_package, $filename, $line) = @_;
 
     push @CHECK_LIST => +{

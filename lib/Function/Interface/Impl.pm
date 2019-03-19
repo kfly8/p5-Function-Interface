@@ -7,6 +7,7 @@ our $VERSION = "0.03";
 
 use Class::Load qw(load_class try_load_class is_class_loaded);
 use Scalar::Util qw(blessed);
+use Import::Into;
 
 sub import {
     my $class = shift;
@@ -16,6 +17,9 @@ sub import {
     for (@interface_packages) {
         register_check_list($pkg, $_, $filename, $line);
     }
+
+    Function::Parameters->import::into($pkg);
+    Function::Return->import::into($pkg);
 }
 
 our @CHECK_LIST;

@@ -50,37 +50,37 @@ sub assert_valid {
 
     {
         my $ok = is_class_loaded($package);
-        return error("implements package is not loaded yet. required to use $package", @fl) if !$ok;
+        return _error("implements package is not loaded yet. required to use $package", @fl) if !$ok;
     }
 
     {
         my ($ok, $e) = try_load_class($interface_package);
-        return error("cannot load interface package: $e", @fl) if !$ok;
+        return _error("cannot load interface package: $e", @fl) if !$ok;
     }
 
     my $iinfo = info_interface($interface_package)
-            or return error("cannot get interface info", @fl);
+            or return _error("cannot get interface info", @fl);
 
     for my $ifunction_info (@{$iinfo->functions}) {
         my $fname = $ifunction_info->subname;
         my $def   = $ifunction_info->definition;
 
         my $code = $package->can($fname)
-            or return error("function `$fname` is required. Interface: $def", @fl);
+            or return _error("function `$fname` is required. Interface: $def", @fl);
 
         my $pinfo = info_params($code)
-            or return error("cannot get function `$fname` parameters info. Interface: $def", @fl);
+            or return _error("cannot get function `$fname` parameters info. Interface: $def", @fl);
         my $rinfo = info_return($code)
-            or return error("cannot get function `$fname` return info. Interface: $def", @fl);
+            or return _error("cannot get function `$fname` return info. Interface: $def", @fl);
 
         check_params($pinfo, $ifunction_info)
-            or return error("function `$fname` is invalid parameters. Interface: $def", @fl);
+            or return _error("function `$fname` is invalid parameters. Interface: $def", @fl);
         check_return($rinfo, $ifunction_info)
-            or return error("function `$fname` is invalid return. Interface: $def", @fl);
+            or return _error("function `$fname` is invalid return. Interface: $def", @fl);
     }
 }
 
-sub error {
+sub _error {
     my ($msg, $filename, $line) = @_;
     die sprintf "implements error: %s at %s line %s\n\tdied", $msg, $filename, $line;
 }

@@ -6,6 +6,7 @@ requires 'Keyword::Simple', '0.04';
 requires 'Carp';
 requires 'Class::Load';
 requires 'Type::Tiny';
+requires 'Import::Into';
 
 on 'test' => sub {
     requires 'Test2::V0';

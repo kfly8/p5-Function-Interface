@@ -7,6 +7,7 @@ our $VERSION = "0.03";
 
 use Class::Load qw(load_class try_load_class is_class_loaded);
 use Scalar::Util qw(blessed);
+use Import::Into;
 
 sub import {
     my $class = shift;
@@ -16,6 +17,9 @@ sub import {
     for (@interface_packages) {
         register_check_list($pkg, $_, $filename, $line);
     }
+
+    Function::Parameters->import::into($pkg);
+    Function::Return->import::into($pkg);
 }
 
 our @CHECK_LIST;
@@ -93,6 +97,19 @@ sub info_params {
     Function::Parameters::info($code)
 }
 
+
+# XXX:
+# We want to call CHECK in the following order:
+# 1. Function::Return#CHECK (to get return info)
+# 2. Function::Interface::Impl#CHECK (to check implements)
+#
+# CHECK is LIFO.
+# So, it is necessary to load in the following order:
+# 1. Function::Interface::Impl
+# 2. Function::Return
+#
+# Because of this,
+# Function::Interface::Impl doesn't use Function::Return, but does load_class.
 sub info_return {
     my $code = shift;
     load_class('Function::Return');
@@ -159,9 +176,6 @@ Function::Interface::Impl - implements interface
 
     package Foo {
         use Function::Interface::Impl qw(IFoo);
-
-        use Function::Parameters;
-        use Function::Return;
         use Types::Standard -types;
 
         fun hello(Str $msg) :Return(Str) {

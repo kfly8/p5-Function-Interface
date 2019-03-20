@@ -35,6 +35,29 @@ package Foo {
 }
 ```
 
+Use the type `ImplOf`:
+
+```perl
+package FooService {
+    use Function::Interface::Types qw(ImplOf);
+    use Function::Parameters;
+    use Function::Return;
+    use Mouse;
+
+    use aliased 'IFoo';
+
+    fun greet(ImplOf[IFoo] $foo) :Return() {
+        print $foo->hello;
+        return;
+    }
+}
+
+my $foo_service = FooService->new;
+my $foo = Foo->new; # implements of IFoo
+
+$foo_service->greet($foo);
+```
+
 # DESCRIPTION
 
 This module provides a typed interface.

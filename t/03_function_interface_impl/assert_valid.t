@@ -5,7 +5,7 @@ use Function::Interface::Impl;
 
 BEGIN {
     no warnings qw(redefine);
-    *Function::Interface::Impl::error = sub {
+    *Function::Interface::Impl::_error = sub {
         return "DIED: @_";
     }
 }

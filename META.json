@@ -1,5 +1,5 @@
 {
-   "abstract" : "specify type constraints of subroutines",
+   "abstract" : "declare typed interface package",
    "author" : [
       "kfly8 <kfly@cpan.org>"
    ],

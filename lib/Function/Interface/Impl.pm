@@ -15,7 +15,7 @@ sub import {
     my ($pkg, $filename, $line) = caller;
 
     for (@interface_packages) {
-        register_check_list($pkg, $_, $filename, $line);
+        _register_check_list($pkg, $_, $filename, $line);
     }
 
     Function::Parameters->import::into($pkg);
@@ -33,7 +33,7 @@ CHECK {
     }
 }
 
-sub register_check_list {
+sub _register_check_list {
     my ($package, $interface_package, $filename, $line) = @_;
 
     push @CHECK_LIST => +{
@@ -50,37 +50,37 @@ sub assert_valid {
 
     {
         my $ok = is_class_loaded($package);
-        return error("implements package is not loaded yet. required to use $package", @fl) if !$ok;
+        return _error("implements package is not loaded yet. required to use $package", @fl) if !$ok;
     }
 
     {
         my ($ok, $e) = try_load_class($interface_package);
-        return error("cannot load interface package: $e", @fl) if !$ok;
+        return _error("cannot load interface package: $e", @fl) if !$ok;
     }
 
     my $iinfo = info_interface($interface_package)
-            or return error("cannot get interface info", @fl);
+            or return _error("cannot get interface info", @fl);
 
     for my $ifunction_info (@{$iinfo->functions}) {
         my $fname = $ifunction_info->subname;
         my $def   = $ifunction_info->definition;
 
         my $code = $package->can($fname)
-            or return error("function `$fname` is required. Interface: $def", @fl);
+            or return _error("function `$fname` is required. Interface: $def", @fl);
 
         my $pinfo = info_params($code)
-            or return error("cannot get function `$fname` parameters info. Interface: $def", @fl);
+            or return _error("cannot get function `$fname` parameters info. Interface: $def", @fl);
         my $rinfo = info_return($code)
-            or return error("cannot get function `$fname` return info. Interface: $def", @fl);
+            or return _error("cannot get function `$fname` return info. Interface: $def", @fl);
 
         check_params($pinfo, $ifunction_info)
-            or return error("function `$fname` is invalid parameters. Interface: $def", @fl);
+            or return _error("function `$fname` is invalid parameters. Interface: $def", @fl);
         check_return($rinfo, $ifunction_info)
-            or return error("function `$fname` is invalid return. Interface: $def", @fl);
+            or return _error("function `$fname` is invalid return. Interface: $def", @fl);
     }
 }
 
-sub error {
+sub _error {
     my ($msg, $filename, $line) = @_;
     die sprintf "implements error: %s at %s line %s\n\tdied", $msg, $filename, $line;
 }
@@ -99,17 +99,17 @@ sub info_params {
 
 
 # XXX:
-# We want to call CHECK in the following order:
+# Need to call C<CHECK> code blocks in the following order:
 # 1. Function::Return#CHECK (to get return info)
 # 2. Function::Interface::Impl#CHECK (to check implements)
 #
-# CHECK is LIFO.
+# C<CHECK> code blocks are LIFO order.
 # So, it is necessary to load in the following order:
 # 1. Function::Interface::Impl
 # 2. Function::Return
 #
 # Because of this,
-# Function::Interface::Impl doesn't use Function::Return, but does load_class.
+# Function::Interface::Impl doesn't use Function::Return, but loads dat run time.
 sub info_return {
     my $code = shift;
     load_class('Function::Return');
@@ -170,9 +170,11 @@ __END__
 
 =head1 NAME
 
-Function::Interface::Impl - implements interface
+Function::Interface::Impl - implements interface package
 
 =head1 SYNOPSIS
+
+Implements the interface package C<IFoo>:
 
     package Foo {
         use Function::Interface::Impl qw(IFoo);
@@ -181,21 +183,67 @@ Function::Interface::Impl - implements interface
         fun hello(Str $msg) :Return(Str) {
             return "HELLO $msg";
         }
-    }
 
-and declare interface class:
-
-    package IFoo {
-        use Function::Interface;
-        use Types::Standard -types;
-
-        fun hello(Str $msg) :Return(Str);
+        fun add(Int $a, Int $b) :Return(Int) {
+            return $a + $b;
+        }
     }
 
 =head1 DESCRIPTION
 
-Function::Interface::Impl is for implementing interface.
-At compile time, it checks whether it is implemented according to the interface.
+Function::Interface::Impl is for implementing interface package.
+This module checks if the abstract functions are implemented at B<compile time> and imports Function::Parameters and Function::Return into the implementing package.
+
+=head1 NOTES
+
+Function::Interface must be loaded B<before> Function::Return.
+
+You need to call C<CHECK> code blocks in the following order:
+1. Function::Return#CHECK (to get return info)
+2. Function::Interface::Impl#CHECK (to check implements)
+
+C<CHECK> code blocks are LIFO order.
+So, it is necessary to load in the following order:
+1. Function::Interface::Impl
+2. Function::Return
+
+=head1 METHODS
+
+=head2 assert_valid
+
+check if the interface package is implemented, otherwise die.
+
+=head2 info_interface($interface_package)
+
+get the object of Function::Interface::Info.
+
+=head2 info_params($code)
+
+get the object of Function::Parameters.
+
+=head2 info_return($code)
+
+get the object of Function::Return.
+
+=head2 check_params($params_info, $interface_function_info)
+
+check if the arguments are implemented according to the interface info.
+
+=head2 check_param($param, $interface_param)
+
+check if the argument are implemented according to the interface info.
+
+=head2 check_return($return_info, $interface_function_info)
+
+check if the return types are implemented according to the interface info.
+
+=head2 impl_of($package, $interface_package)
+
+check if specified package is an implementation of specified interface package.
+
+=head1 SEE ALSO
+
+L<Function::Parameters>, L<Function::Return>
 
 =head1 LICENSE
 

@@ -5,7 +5,7 @@ requires 'PPR';
 requires 'Keyword::Simple', '0.04';
 requires 'Carp';
 requires 'Class::Load';
-requires 'Type::Tiny';
+requires 'Type::Tiny', '1.000000';
 requires 'Import::Into';
 
 on 'test' => sub {

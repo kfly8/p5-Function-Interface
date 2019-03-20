@@ -99,17 +99,17 @@ sub info_params {
 
 
 # XXX:
-# We want to call CHECK in the following order:
+# Need to call C<CHECK> code blocks in the following order:
 # 1. Function::Return#CHECK (to get return info)
 # 2. Function::Interface::Impl#CHECK (to check implements)
 #
-# CHECK is LIFO.
+# C<CHECK> code blocks are LIFO order.
 # So, it is necessary to load in the following order:
 # 1. Function::Interface::Impl
 # 2. Function::Return
 #
 # Because of this,
-# Function::Interface::Impl doesn't use Function::Return, but does load_class.
+# Function::Interface::Impl doesn't use Function::Return, but loads dat run time.
 sub info_return {
     my $code = shift;
     load_class('Function::Return');
@@ -193,6 +193,19 @@ Implements the interface package C<IFoo>:
 
 Function::Interface::Impl is for implementing interface package.
 This module checks if the abstract functions are implemented at B<compile time> and imports Function::Parameters and Function::Return into the implementing package.
+
+=head1 NOTES
+
+Function::Interface must be loaded B<before> Function::Return.
+
+You need to call C<CHECK> code blocks in the following order:
+1. Function::Return#CHECK (to get return info)
+2. Function::Interface::Impl#CHECK (to check implements)
+
+C<CHECK> code blocks are LIFO order.
+So, it is necessary to load in the following order:
+1. Function::Interface::Impl
+2. Function::Return
 
 =head1 METHODS
 

@@ -76,7 +76,7 @@ Returns an abstract function name
 
 =head2 keyword
 
-Returns the keyword used to define the abstract function, i.e. C<fun> or C<method
+Returns the keyword used to define the abstract function, i.e. C<fun> or C<method>
 
 =head2 params
 

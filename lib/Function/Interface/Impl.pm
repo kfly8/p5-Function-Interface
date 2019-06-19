@@ -34,11 +34,12 @@ sub import {
 our @CHECK_LIST;
 my %IMPL_CHECKED;
 sub _check_impl {
-    for (@CHECK_LIST) {
-        assert_valid(@$_{qw/package interface_package filename line/});
+    while (my $data = shift @CHECK_LIST) {
+        my ($package, $interface_package, @fl) = @$data{qw/package interface_package filename line/};
+        assert_valid($package, $interface_package, @fl);
 
         # for Function::Interface::Types#ImplOf
-        $IMPL_CHECKED{$_->{package}}{$_->{interface_package}} = !!1;
+        $IMPL_CHECKED{$package}{$interface_package} = !!1;
     }
 }
 

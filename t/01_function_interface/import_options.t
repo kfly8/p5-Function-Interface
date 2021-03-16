@@ -4,6 +4,6 @@ use Function::Interface pkg => 'MyTest';
 fun foo() :Return();
 
 my $info = Function::Interface::info 'MyTest';
-is $info->package, 'MyTest';
+ok $info;
 
 done_testing;

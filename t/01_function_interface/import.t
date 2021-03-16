@@ -11,7 +11,7 @@ sub optional()   { !!1 }
 sub function_info {
     my $name = shift;
     my $info = Function::Interface::info __PACKAGE__;
-    my @f = grep { $_->subname eq $name } @{$info->functions};
+    my @f = grep { $_->subname eq $name } @{$info};
     return $f[0]
 }
 
@@ -23,24 +23,24 @@ sub test {
 
     note "TEST $keyword $subname";
 
-    is $info->keyword, $keyword, 'keyword';
+    is $info->is_method, $keyword eq 'method', 'keyword';
     is $info->subname, $subname, 'subname';
 
-    for (my $i = 0; $i < @{$info->params}; $i++) {
-        my $p = $info->params->[$i];
+    for (my $i = 0; $i < @{$info->args}; $i++) {
+        my $p = $info->args->[$i];
         my ($type, $name, $named, $optional) = @{$params->[$i]};
 
-        is $p->type_display_name, $type, "param $i type";
+        is $p->type, $type, "param $i type";
         is $p->name, $name, "param $i name";
         is $p->named, $named, "param $i named";
         is $p->optional, $optional, "param $i optional";
     }
 
-    for (my $i = 0; $i < @{$info->return}; $i++) {
-        my $r = $info->return->[$i];
+    for (my $i = 0; $i < @{$info->returns->list}; $i++) {
+        my $r = $info->returns->list->[$i];
         my $type = $return->[$i];
 
-        is $r->type_display_name, $type, "return $i type";
+        is $r, $type, "return $i type";
     }
 }
 

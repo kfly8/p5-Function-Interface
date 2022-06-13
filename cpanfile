@@ -9,5 +9,6 @@ requires 'Type::Tiny', '1.000000';
 requires 'Import::Into';
 
 on 'test' => sub {
-    requires 'Test2::V0';
+    requires 'Test2::V0', '0.000135';
+    requires 'Module::Build::Tiny', '0.035';
 };

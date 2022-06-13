@@ -1,0 +1,97 @@
+name: test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        perl:
+          [
+            "5.36",
+            "5.34",
+            "5.32",
+            "5.30",
+            "5.28",
+            "5.26",
+            "5.24",
+            "5.22",
+            # "5.20", SKIP TEST https://metacpan.org/source/DCONWAY/PPR-0.000015/lib/PPR.pm#L7
+            "5.18",
+            "5.16",
+            "5.14",
+          ]
+        include:
+          - perl: 5.36
+            coverage: true
+
+    name: Perl ${{ matrix.perl }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Perl
+      uses: shogo82148/actions-setup-perl@v1
+      with:
+        perl-version: ${{ matrix.perl }}
+
+    - name: Install dependencies
+      run: cpm install --with-develop --with-recommends
+
+    - name: Build
+      run: |
+        perl Build.PL
+        ./Build
+
+    - name: Run test
+      run: |
+        ./Build test
+
+    - name: Run coverage
+      if: ${{ matrix.coverage }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DEVEL_COVER_OPTIONS: "-ignore,^local/,^t/"
+      run: |
+        cpm install Devel::Cover Devel::Cover::Report::Codecov
+        cover -test -report codecov
+
+  misspell:
+    runs-on: ubuntu-latest
+    name: misspell
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Run misspell
+      uses: reviewdog/action-misspell@v1
+      with:
+        github_token: ${{ secrets.github_token }}
+        reporter: github-pr-review
+        locale: "US"
+
+  perlcritic:
+    runs-on: ubuntu-latest
+    name: perlcritic
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Perl
+      uses: shogo82148/actions-setup-perl@v1
+
+    - name: Setup Reviewdog
+      uses: reviewdog/action-setup@v1
+
+    - name: Run perlcritic
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        cpm install Perl::Critic
+        perlcritic --profile .perlcriticrc --verbose '%f:%l:%c:**%m**, near <code>%r</code>.<br>(Ref: [%p](https://metacpan.org/pod/Perl::Critic::Policy::%p))\n' lib t | reviewdog -efm=%f:%l:%c:%m -name=perlcritic -reporter=github-pr-review -level=error
+

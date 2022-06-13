@@ -9,10 +9,7 @@ use Carp qw(croak);
 use Keyword::Simple;
 use PPR;
 
-use Function::Interface::Info;
-use Function::Interface::Info::Function;
-use Function::Interface::Info::Function::Param;
-use Function::Interface::Info::Function::ReturnParam;
+use Sub::Meta;
 
 sub import {
     my $class = shift;
@@ -77,36 +74,18 @@ sub _register_info {
 
 sub info {
     my ($interface_package) = @_;
-    my $info = $metadata{$interface_package} or return undef;
+    my $data = $metadata{$interface_package} or return undef;
 
-    Function::Interface::Info->new(
-        package   => $interface_package,
-        functions => [ map {
-            Function::Interface::Info::Function->new(
-                subname => $_->{subname},
-                keyword => $_->{keyword},
-                params  => [ map { _make_function_param($_) } @{$_->{params}} ],
-                return  => [ map { _make_function_return_param($_) } @{$_->{return}} ],
-            )
-        } @{$info}],
-    );
-}
-
-sub _make_function_param {
-    my $param = shift;
-    Function::Interface::Info::Function::Param->new(
-        type     => $param->{type},
-        name     => $param->{name},
-        named    => $param->{named},
-        optional => $param->{optional},
-    )
-}
-
-sub _make_function_return_param {
-    my $type = shift;
-    Function::Interface::Info::Function::ReturnParam->new(
-        type => $type,
-    )
+    my @info;
+    for (@$data) {
+        push @info => Sub::Meta->new(
+            subname   => $_->{subname},
+            is_method => $_->{keyword} eq 'method' ? !!1 : !!0,
+            args      => [ @{$_->{params}} ],
+            returns   => { list => [ @{$_->{return}} ] },
+        );
+    }
+    return \@info;
 }
 
 sub _assert_valid_interface {

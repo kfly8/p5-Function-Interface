@@ -10,38 +10,36 @@ method baz() :Return();
 subtest 'basic' => sub {
     my $info = Function::Interface::info __PACKAGE__;
 
-    is $info->package, 'main';
-    is @{$info->functions}, 3;
+    is @{$info}, 3;
 
     subtest 'foo' => sub {
-        my $i = $info->functions->[0];
+        my $i = $info->[0];
         is $i->subname, 'foo';
-        is $i->keyword, 'fun';
-        is $i->params, [];
-        is $i->return, [];
+        ok !$i->is_method, 'fun';
+        is $i->args, [];
+        is $i->returns->list, [];
     };
 
     subtest 'bar' => sub {
-        my $i = $info->functions->[1];
+        my $i = $info->[1];
         is $i->subname, 'bar';
-        is $i->keyword, 'fun';
+        ok !$i->is_method, 'fun';
 
-        is @{$i->params}, 1;
-        isa_ok $i->params->[0], 'Function::Interface::Info::Function::Param';
-        ok $i->params->[0]->type eq Str;
-        is $i->params->[0]->name, '$msg';
+        is @{$i->args}, 1;
+        isa_ok $i->args->[0], 'Sub::Meta::Param';
+        ok $i->args->[0]->type eq Str;
+        is $i->args->[0]->name, '$msg';
 
-        is @{$i->return}, 1;
-        isa_ok $i->return->[0], 'Function::Interface::Info::Function::ReturnParam';
-        ok $i->return->[0]->type eq Int;
+        isa_ok $i->returns, 'Sub::Meta::Returns';
+        ok $i->returns->list->[0], Int;
     };
 
     subtest 'baz' => sub {
-        my $i = $info->functions->[2];
+        my $i = $info->[2];
         is $i->subname, 'baz';
-        is $i->keyword, 'method';
-        is $i->params, [];
-        is $i->return, [];
+        ok $i->is_method, 'method';
+        is $i->args, [];
+        is $i->returns->list, [];
     };
 };
 

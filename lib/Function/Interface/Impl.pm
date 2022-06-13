@@ -7,148 +7,72 @@ our $VERSION = "0.06";
 
 use Class::Load qw(try_load_class is_class_loaded);
 use Scalar::Util qw(blessed);
-use Import::Into;
 use B::Hooks::EndOfScope;
 
 use Function::Interface;
-use Function::Parameters;
-use Function::Return;
+use Sub::Meta::Library;
+use Import::Into;
+
+my %IMPL_CHECKED;
+
+our $ERROR_FILENAME;
+our$ERROR_LINE;
+sub _croak {
+    my ($msg) = @_;
+    require Carp;
+    @_ = sprintf "implements error: %s at %s line %s\n\tdied", $msg, $ERROR_FILENAME, $ERROR_LINE;
+    goto \&Carp::croak;
+}
 
 sub import {
     my $class = shift;
     my @interface_packages = @_;
-    my ($pkg, $filename, $line) = caller;
+    my ($impl_package, $filename, $line) = caller;
 
-    for (@interface_packages) {
-        _register_check_list($pkg, $_, $filename, $line);
-    }
-
-    Function::Parameters->import::into($pkg);
-    Function::Return->import::into($pkg);
+    Function::Parameters->import::into($impl_package);
+    Function::Return->import::into($impl_package);
 
     on_scope_end {
-        _check_impl();
-    }
-}
+        local $ERROR_FILENAME = $filename;
+        local $ERROR_LINE = $line;
 
-our @CHECK_LIST;
-my %IMPL_CHECKED;
-sub _check_impl {
-    while (my $data = shift @CHECK_LIST) {
-        my ($package, $interface_package, @fl) = @$data{qw/package interface_package filename line/};
-        assert_valid($package, $interface_package, @fl);
+        for my $interface_package (@interface_packages) {
+            $class->assert_valid($impl_package, $interface_package);
 
-        # for Function::Interface::Types#ImplOf
-        $IMPL_CHECKED{$package}{$interface_package} = !!1;
-    }
-}
-
-sub _register_check_list {
-    my ($package, $interface_package, $filename, $line) = @_;
-
-    push @CHECK_LIST => +{
-        package           => $package,
-        interface_package => $interface_package,
-        filename          => $filename,
-        line              => $line,
+            # for Function::Interface::Types#ImplOf
+            $IMPL_CHECKED{$interface_package}{$interface_package} = !!1;
+        }
     }
 }
 
 sub assert_valid {
-    my ($package, $interface_package, $filename, $line) = @_;
-    my @fl = ($filename, $line);
+    my $class = shift;
+    my ($package, $interface_package) = @_;
 
     {
         my $ok = is_class_loaded($package);
-        return _error("implements package is not loaded yet. required to use $package", @fl) if !$ok;
+        _croak("implements package is not loaded yet. required to use $package") if !$ok;
     }
 
     {
         my ($ok, $e) = try_load_class($interface_package);
-        return _error("cannot load interface package: $e", @fl) if !$ok;
+        _croak("cannot load interface package: $e") if !$ok;
     }
 
-    my $iinfo = info_interface($interface_package)
-            or return _error("cannot get interface info", @fl);
+    my $interface_info = Function::Interface::info($interface_package)
+            or _croak("cannot get interface info");
 
-    for my $ifunction_info (@{$iinfo->functions}) {
-        my $fname = $ifunction_info->subname;
-        my $def   = $ifunction_info->definition;
+    for my $interface_submeta (@{$interface_info}) {
+        my $subname = $interface_submeta->subname;
+        my $code = $package->can($subname)
+            or _croak("function `$subname` is required.");
 
-        my $code = $package->can($fname)
-            or return _error("function `$fname` is required. Interface: $def", @fl);
+        my $impl_submeta = Sub::Meta::Library->get($code)
+            or _croak("cannot get function `$subname` info.");
 
-        my $pinfo = info_params($code)
-            or return _error("cannot get function `$fname` parameters info. Interface: $def", @fl);
-        my $rinfo = info_return($code)
-            or return _error("cannot get function `$fname` return info. Interface: $def", @fl);
-
-        check_params($pinfo, $ifunction_info)
-            or return _error("function `$fname` is invalid parameters. Interface: $def", @fl);
-        check_return($rinfo, $ifunction_info)
-            or return _error("function `$fname` is invalid return. Interface: $def", @fl);
+        $interface_submeta->is_same_interface($impl_submeta)
+            or _croak("function `$subname` is invalid interface.");
     }
-}
-
-sub _error {
-    my ($msg, $filename, $line) = @_;
-    die sprintf "implements error: %s at %s line %s\n\tdied", $msg, $filename, $line;
-}
-
-sub info_interface {
-    my $interface_package = shift;
-    Function::Interface::info($interface_package)
-}
-
-sub info_params {
-    my $code = shift;
-    Function::Parameters::info($code)
-}
-
-sub info_return {
-    my $code = shift;
-    Function::Return::info($code)
-}
-
-sub check_params {
-    my ($pinfo, $ifunction_info) = @_;
-
-    return unless $ifunction_info->keyword eq $pinfo->keyword;
-
-    my $params_count = 0;
-    for my $key (qw/positional_required positional_optional named_required named_optional/) {
-        my @params = $pinfo->$key;
-        $params_count += @params;
-
-        for my $i (0 .. $#{$ifunction_info->$key}) {
-            my $ifp = $ifunction_info->$key->[$i];
-            my $p = $params[$i];
-            return unless check_param($p, $ifp);
-        }
-    }
-
-    return unless $params_count == @{$ifunction_info->params};
-    return !!1
-}
-
-sub check_param {
-    my ($param, $iparam) = @_;
-    return unless $param;
-    return $iparam->type eq $param->type
-        && $iparam->name eq $param->name
-}
-
-sub check_return {
-    my ($rinfo, $ifunction_info) = @_;
-
-    return unless @{$rinfo->types} == @{$ifunction_info->return};
-
-    for my $i (0 .. $#{$ifunction_info->return}) {
-        my $ifr = $ifunction_info->return->[$i];
-        my $type = $rinfo->types->[$i];
-        return unless $ifr->type eq $type;
-    }
-    return !!1;
 }
 
 sub impl_of {
@@ -172,6 +96,8 @@ Implements the interface package C<IFoo>:
 
     package Foo {
         use Function::Interface::Impl qw(IFoo);
+        use Function::Parameters;
+        use Function::Return;
         use Types::Standard -types;
 
         fun hello(Str $msg) :Return(Str) {
@@ -186,20 +112,7 @@ Implements the interface package C<IFoo>:
 =head1 DESCRIPTION
 
 Function::Interface::Impl is for implementing interface package.
-This module checks if the abstract functions are implemented at B<compile time> and imports Function::Parameters and Function::Return into the implementing package.
-
-=head1 NOTES
-
-Function::Interface must be loaded B<before> Function::Return.
-
-You need to call C<CHECK> code blocks in the following order:
-1. Function::Return#CHECK (to get return info)
-2. Function::Interface::Impl#CHECK (to check implements)
-
-C<CHECK> code blocks are LIFO order.
-So, it is necessary to load in the following order:
-1. Function::Interface::Impl
-2. Function::Return
+This module checks if the abstract functions are implemented at B<compile time>.
 
 =head1 METHODS
 
@@ -207,37 +120,9 @@ So, it is necessary to load in the following order:
 
 check if the interface package is implemented, otherwise die.
 
-=head2 info_interface($interface_package)
-
-get the object of Function::Interface::Info.
-
-=head2 info_params($code)
-
-get the object of Function::Parameters.
-
-=head2 info_return($code)
-
-get the object of Function::Return.
-
-=head2 check_params($params_info, $interface_function_info)
-
-check if the arguments are implemented according to the interface info.
-
-=head2 check_param($param, $interface_param)
-
-check if the argument are implemented according to the interface info.
-
-=head2 check_return($return_info, $interface_function_info)
-
-check if the return types are implemented according to the interface info.
-
 =head2 impl_of($package, $interface_package)
 
 check if specified package is an implementation of specified interface package.
-
-=head1 SEE ALSO
-
-L<Function::Parameters>, L<Function::Return>
 
 =head1 LICENSE
 

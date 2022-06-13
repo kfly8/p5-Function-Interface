@@ -19,8 +19,8 @@ use FooInvalidReturn;
 
 sub assert_valid {
     my ($package, $interface_package) = @_;
-    Function::Interface::Impl::assert_valid(
-        $package, $interface_package, __FILE__, __LINE__
+    Function::Interface::Impl->assert_valid(
+        $package, $interface_package
     );
 }
 
